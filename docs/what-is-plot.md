@@ -4,7 +4,7 @@ import * as Plot from "@observablehq/plot";
 import * as d3 from "d3";
 import {computed, onMounted, shallowRef} from "vue";
 import {useData} from "vitepress";
-import PlotRender from "./components/PlotRender.js";
+import PlotRender from "./components/PlotRender";
 
 const olympians = shallowRef([
   {weight: 31, height: 1.21, sex: "female"},
