@@ -220,15 +220,14 @@ For server-side rendering (SSR), use the [**document** plot option](./features/p
 :::code-group
 ```js [PlotFigure.js]
 import * as Plot from "@observablehq/plot";
-import {h} from "vue";
 
 export default {
   props: {
     options: Object
   },
-  render() {
-    return Plot.plot({
-      ...this.options,
+  setup(props) {
+    return () => Plot.plot({
+      ...props.options,
       document: new Document()
     }).toHyperScript();
   }
@@ -265,25 +264,20 @@ import penguins from "./assets/penguins.json";
 
 See our [Plot + Vue CodeSandbox](https://codesandbox.io/p/sandbox/plot-vue-jlgg2w?file=/src/App.vue) for details.
 
-For client-side rendering, use a [render function](https://vuejs.org/guide/extras/render-function.html) with a [mounted](https://vuejs.org/api/options-lifecycle.html#mounted) lifecycle directive. After the component mounts, render the plot and then insert it into the page.
+For client-side rendering, use `setup` to return a [render function](https://vuejs.org/api/render-function.html) with a [onMounted](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) lifecycle hook. After the component mounts, render the plot and then insert it into the page.
 
 ```js
 import * as Plot from "@observablehq/plot";
-import {h, withDirectives} from "vue";
+import {h, onMounted, shallowRef} from "vue";
 
 export default {
   props: ["options"],
-  render() {
-    const {options} = this;
-    return withDirectives(h("div"), [
-      [
-        {
-          mounted(el) {
-            el.append(Plot.plot(options));
-          }
-        }
-      ]
-    ]);
+  setup(props) {
+    const el = shallowRef(null)
+    onMounted(() => {
+      el.append(Plot.plot(options))
+    })
+    return () => h("div", {ref: el}, 'Loading Plot...');
   }
 };
 ```
