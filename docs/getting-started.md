@@ -219,14 +219,13 @@ This example also demonstrates asynchronously loading CSV data with [useState](h
 
 ## Plot in Vue
 
-As with React, you can use either server- or client-side rendering with Plot and Vue.
+You can use either server- or client-side rendering with Plot and Vue.
 
 For server-side rendering (SSR), use the [**document** plot option](./features/plots.md) to render to Vue’s virtual DOM. For example, here is a PlotFigure component:
 
 :::code-group
 ```js [PlotFigure.js]
 import * as Plot from "@observablehq/plot";
-import {h} from "vue";
 
 export default {
   props: {
@@ -271,9 +270,62 @@ import penguins from "./assets/penguins.json";
 
 See our [Plot + Vue CodeSandbox](https://codesandbox.io/p/sandbox/plot-vue-jlgg2w?file=/src/App.vue) for details.
 
-For client-side rendering, use a [render function](https://vuejs.org/guide/extras/render-function.html) with a [mounted](https://vuejs.org/api/options-lifecycle.html#mounted) lifecycle directive. After the component mounts, render the plot and then insert it into the page.
+For **client-side** rendering, use:
 
-```js
+1. on Composition API: [lifecycle hooks](https://vuejs.org/api/options-lifecycle.html#mounted) with [template ref](https://vuejs.org/guide/essentials/template-refs.html#template-refs),
+2. on Options API: [lifecycle hooks](https://vuejs.org/api/options-lifecycle.html#mounted) with [template ref](https://vuejs.org/guide/essentials/template-refs.html#template-refs) and render function, or
+3. a [render function](https://vuejs.org/guide/extras/render-function.html) with a [mounted](https://vuejs.org/api/options-lifecycle.html#mounted) lifecycle directive.
+
+After the component mounts, render the plot and insert it into the page.
+
+:::code-group
+```vue [Composition API]
+<script setup>
+import { shallowRef, ref, useTemplateRef, onMounted, onUpdated } from 'vue';
+import * as Plot from "@observablehq/plot";
+
+const container = shallowRef(null) || useTemplateRef('container')
+
+const options = ref({
+  marks: [
+    Plot.dot(penguins, {x: 'culmen_length_mm', y: 'culmen_depth_mm'}),
+  ],
+  className: 'plot'
+  // other PlotOptions
+})
+
+function appendPlot = () => {
+  if (container.value) {
+    container.value.append(Plot.plot(options.value))
+  }
+}
+
+onMounted(appendPlot)
+onUpdated(appendPlot)
+</script>
+
+<template>
+  <div ref="container"></div>
+</template>
+```
+```js [Options API]
+import * as Plot from "@observablehq/plot";
+import { h, defineComponent } from "vue";
+
+export default defineComponent({
+  props: ["options"],
+  mounted() {
+    if (this.$refs.container) {
+      this.$refs.container.append(Plot.plot(options));
+    }
+  },
+  render() {
+    const {options} = this;
+    return h("div", {ref: 'container'});
+  }
+});
+```
+```js [withDirectives]
 import * as Plot from "@observablehq/plot";
 import {h, withDirectives} from "vue";
 
@@ -293,6 +345,7 @@ export default {
   }
 };
 ```
+:::
 
 As with React, to update your plot for whatever reason, simply render a new one and replace the old one. You can find more examples on [our GitHub](https://github.com/observablehq/plot/tree/main/docs) as this documentation site is built with VitePress and uses both client- and server-side rendering for plots!
 
